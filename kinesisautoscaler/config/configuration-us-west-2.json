@@ -1,0 +1,22 @@
+[
+    {  
+       "streamName":"data-processing-stream",
+       "region":"us-west-2",
+       "scaleOnOperation": ["PUT","GET"],
+       "minShards":1,
+       "maxShards":16,
+       "refreshShardsNumberAfterMin":5,
+       "scaleUp": {
+            "scaleThresholdPct": 75,
+            "scaleAfterMins": 1,
+            "scaleCount": 2
+            
+        },
+        "scaleDown": {
+            "scaleThresholdPct": 25,
+            "scaleAfterMins": 1,
+            "scaleCount": 1,
+            "coolOffMins": 1
+        }
+    }
+]

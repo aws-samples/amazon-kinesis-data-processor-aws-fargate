@@ -1,0 +1,3 @@
+com/amazonaws/services/kinesis/samples/dataprocessor/DataProcessorApplication.class
+com/amazonaws/services/kinesis/samples/dataprocessor/DataProcessorApplicationRecordProcessorFactory.class
+com/amazonaws/services/kinesis/samples/dataprocessor/DataProcessorApplicationRecordProcessor.class
