@@ -757,6 +757,12 @@ Resources:
             - codebuild:UpdateReport
             - codebuild:BatchPutTestCases
             Resource: !Sub 'arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/*'
+          - 
+            Effect: Allow
+            Action:
+            - codecommit:GitPull
+            Resources: "*"
+
 
   CodeBuildProjectDockerImages01:
     Type: AWS::CodeBuild::Project
