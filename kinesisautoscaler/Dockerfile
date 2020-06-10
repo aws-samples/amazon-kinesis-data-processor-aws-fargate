@@ -14,5 +14,5 @@ RUN mvn clean package assembly:assembly
 # Package stage
 #
 FROM openjdk:11-jre-slim
-COPY --from=build /usr/local/kinesis_scaling/target/KinesisScalingUtils-.9.5.9-complete.jar /usr/local/lib/KinesisScalingUtils-.9.5.9-complete.jar
-ENTRYPOINT java -Dconfig-file-url=${CONFIG_FILE} -cp /usr/local/lib/KinesisScalingUtils-.9.5.9-complete.jar com.amazonaws.services.kinesis.scaling.auto.AutoscalingController
+COPY --from=build /usr/local/kinesis_scaling/target/KinesisScalingUtils-.9.6.0-complete.jar /usr/local/lib/KinesisScalingUtils-.9.6.0-complete.jar
+ENTRYPOINT java -Dconfig-file-url=${CONFIG_FILE} -cp /usr/local/lib/KinesisScalingUtils-.9.6.0-complete.jar com.amazonaws.services.kinesis.scaling.auto.AutoscalingController
