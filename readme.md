@@ -28,7 +28,7 @@ For this walkthrough, you need the following prerequisites:
 
 Deploy the CloudFormation Stack in one of the supported regions:
 
-| Region        | Link           
+| Region        | Deployment link           
 | ------------- |:-------------:
 | us-east-1     | [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=kinesisDataProcessor-fm9310&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
 | us-east-2     | [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=kinesisDataProcessor-fm9310&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)      
@@ -40,9 +40,9 @@ Deploy the CloudFormation Stack in one of the supported regions:
 | ap-southeast-2| [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=ap-southeast-2#/stacks/new?stackName=kinesisDataProcessor-fm9310&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
 
 
-Alternatively you can download the C[loudFormation Template File](https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml) and deploy it manually.
+Alternatively you can download the [CloudFormation Template File](https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml) and deploy it manually.
 
-Be aware this CloudFormation stacks creates a public accessibly HTTP endpoint. You may want to restrict access by changing the [Security Groups InboundRule](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroupshtml#AddRemoveRules) of the Application Load Balancer.
+
 
 ### Step 2: Send Records to Kinesis
 
