@@ -8,11 +8,11 @@
 		<version>2.2.6.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.amazonaws.services.kinesis</groupId>
-	<artifactId>dataprocessor</artifactId>
+	<groupId>com.amazonaws.services.kinesis.samples.dataprocessor</groupId>
+	<artifactId>producer</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>Data Processor</name>
-	<description>Kinesis DataProcessor</description>
+	<name>Kinesis Data Processor Producer</name>
+	<description>Kinesis Data Processor Producer Application</description>
 
 	<properties>
 		<java.version>1.8</java.version>
