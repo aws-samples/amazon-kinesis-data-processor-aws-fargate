@@ -805,15 +805,6 @@ Outputs:
   Dashboard:
     Description: Link to CloudWatch Dashboard
     Value: !Sub 'https://console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=Kinesis-Data-Processor-Dashboard;accountId=${AWS::AccountId}'
-
-
-
-
-
-
-      
-
-      
-
-
-
+  SecurityGroup:
+    Description: Modify this SG to grant/restrict access to your Application
+    Value: !Sub 'https://${AWS::Region}.console.aws.amazon.com/ec2/v2/home?region=${AWS::Region}#SecurityGroup:groupId=${ALBSecurityGroup01.GroupId}'

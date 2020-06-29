@@ -30,19 +30,17 @@ Deploy the CloudFormation Stack in one of the supported regions:
 
 | Region        | Deployment link           
 | ------------- |:-------------:
-| us-east-1     | [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=kinesisDataProcessor-fm9310&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
-| us-east-2     | [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=kinesisDataProcessor-fm9310&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)      
-| us-west-1     | [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-west-1#/stacks/new?stackName=kinesisDataProcessor-fm9310&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)     
-| us-west-2     | [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=kinesisDataProcessor-fm9310&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
-| eu-west-1      | [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=kinesisDataProcessor-fm9310&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
-| eu-central-1  | [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=eu-central-1#/stacks/new?stackName=kinesisDataProcessor-fm9310&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
-| ap-southeast-1| [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=ap-southeast-1#/stacks/new?stackName=kinesisDataProcessor-fm9310&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
-| ap-southeast-2| [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=ap-southeast-2#/stacks/new?stackName=kinesisDataProcessor-fm9310&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
+| us-east-1     | [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
+| us-east-2     | [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)      
+| us-west-1     | [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-west-1#/stacks/new?&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)     
+| us-west-2     | [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
+| eu-west-1      | [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
+| eu-central-1  | [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=eu-central-1#/stacks/new?&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
+| ap-southeast-1| [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=ap-southeast-1#/stacks/new?&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
+| ap-southeast-2| [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=ap-southeast-2#/stacks/new?&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
 
 
-Alternatively you can download the [CloudFormation Template File](https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml) and deploy it manually.
-
-
+Alternatively you can download the [CloudFormation Template File](https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml) and deploy it manually. When asked to provide an IPv4 CIDR Range enter the CIDR range that will be able to send records to your application. You can change that also later on by the [Security Groups Inbound Rule](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html#AddRemoveRules) of the Application Load Balancer.
 
 ### Step 2: Send Records to Kinesis
 
@@ -54,17 +52,11 @@ curl --location --request POST 'http://ALB-DNS-record' --header 'Content-Type: a
 
 ### Step 3: Monitor your Stream and Applications
 
-With the resource creation via the CloudFormation Template a CloudWatch
-Dashboard has been created. You can find this in the AWS Console within
-CloudWatch or by clicking the Link in the CloudFormation Stack's output
-section.
+With the resource creation via the CloudFormation Template a CloudWatch Dashboard has been created. You can find this in the AWS Console within CloudWatch or by clicking the Link in the CloudFormation Stack's output section.
 
 ![](dashboard.png)
 
 
 ### Cleanup
 
-To avoid additional cost, ensure that the provisioned resources are
-decommissioned. To do that delete the images in the ECR repository, the
-CloudFormation stack and any remaining resources that were not deleted
-by the CloudFormation stack.
+To avoid additional cost, ensure that the provisioned resources are decommissioned. To do that delete the images in the ECR repository, the CloudFormation stack and any remaining resources that were not deleted by the CloudFormation stack.
