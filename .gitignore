@@ -10,6 +10,7 @@ consumer/target/
 *.zip
 *.tar.gz
 *.rar
+*.iml
 
 #IDE
 .vscode/
