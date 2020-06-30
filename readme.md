@@ -25,22 +25,11 @@ For this walkthrough, you need the following prerequisites:
 
 ## Step 2: Deploy the CloudFormation Stack
 
+Deploy the CloudFormation Stack by clicking the Launch Stack Button.The template is launched in the US East (N. Virginia) Region by default. To launch it in a different AWS Region, use the region selector in the console navigation bar. The following regions are supported: US East (N. Virgina), US East (Ohio), US West (N.California), US West (Oregon), Asia Pacific (Singapore), Asia Pacific (Sydney), Europe (Frankfurt), Europe (Ireland).
 
-Deploy the CloudFormation Stack in one of the supported regions:
+[<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?&templateURL=https://flomair-dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
 
-| Region        | Deployment link           
-| ------------- |:-------------:
-| us-east-1     | [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
-| us-east-2     | [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)      
-| us-west-1     | [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-west-1#/stacks/new?&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)     
-| us-west-2     | [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
-| eu-west-1      | [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
-| eu-central-1  | [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=eu-central-1#/stacks/new?&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
-| ap-southeast-1| [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=ap-southeast-1#/stacks/new?&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
-| ap-southeast-2| [<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=ap-southeast-2#/stacks/new?&templateURL=https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
-
-
-Alternatively you can download the [CloudFormation Template File](https://dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml) and deploy it manually. When asked to provide an IPv4 CIDR Range enter the CIDR range that will be able to send records to your application. You can change that also later on by the [Security Groups Inbound Rule](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html#AddRemoveRules) of the Application Load Balancer.
+Alternatively you can download the [CloudFormation Template File](https://flomair-dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml) and deploy it manually. When asked to provide an IPv4 CIDR Range enter the CIDR range that will be able to send records to your application. You can change that also later on by the [Security Groups Inbound Rule](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html#AddRemoveRules) of the Application Load Balancer.
 
 ### Step 2: Send Records to Kinesis
 
