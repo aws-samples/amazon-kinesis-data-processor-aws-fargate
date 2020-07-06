@@ -460,15 +460,16 @@ Resources:
             - kinesis:SplitShard
             - kinesis:MergeShards
             Resource: !GetAtt KinesisDataStream01.Arn
-          -
-            Effect: "Allow"
-            Action: cloudwatch:GetMetricStatistics
-            Resource: "*"
           - 
             Effect: "Allow"
             Action:
-              - cloudwatch:PutMetricData
-            Resource: !GetAtt ECSTaskLogGroup03.Arn 
+            - cloudwatch:PutMetricData
+            Resource: !GetAtt ECSTaskLogGroup03.Arn
+          -
+            Effect: 'Allow'
+            Action:
+            - cloudwatch:GetMetricStatistics
+            Resource: '*'
 
   ECSTaskLogGroup02:
     Type: AWS::Logs::LogGroup
@@ -570,9 +571,15 @@ Resources:
           - cloudwatch:PutMetricData
           - kinesis:ListShards
           - kinesis:DescribeLimits
+          Resource:
+          - '*'
+        - Effect: Allow
+          Action:
           - kinesis:DescribeStreamConsumer
           - kinesis:SubscribeToShard
-          Resource: "*"
+          Resource:
+            - !Sub 'arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:stream/data-processing-stream'
+            - !Sub 'arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:*/data-processing-stream/consumer/*:*'
         - Effect: Allow
           Action:
           - kinesis:DeregisterStreamConsumer
@@ -743,18 +750,24 @@ Resources:
             Action:
             - ecr:BatchCheckLayerAvailability
             - ecr:CompleteLayerUpload
-            - ecr:GetAuthorizationToken
             - ecr:InitiateLayerUpload
             - ecr:PutImage
             - ecr:UploadLayerPart
-            Resource: "*"
+            Resource: !Sub 'arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/kinesis-data-processor/*'
+          -
+            Effect: Allow
+            Action:
+              - ecr:GetAuthorizationToken
+              - logs:CreateLogGroup
+            Resource: '*'
           - 
             Effect: Allow
             Action:
-            - logs:CreateLogGroup
             - logs:CreateLogStream
             - logs:PutLogEvents
-            Resource: "*"
+            Resource:
+            - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:ecs/kinesis-data-processor-consumer*'
+            - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:ecs/kinesis-data-processor-consumer*:log-stream:*'
           - 
             Effect: Allow
             Action: 
