@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: kinesis-data-processor
+Description: Sample deployment for the AWS blog post "Building a scalable streaming data processor with Amazon Kinesis on AWS Fargate"
 
 Parameters:
   MaxProducers:
@@ -763,11 +763,9 @@ Resources:
           - 
             Effect: Allow
             Action:
-            - logs:CreateLogStream
             - logs:PutLogEvents
             Resource:
-            - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:ecs/kinesis-data-processor-consumer*'
-            - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:ecs/kinesis-data-processor-consumer*:log-stream:*'
+            - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:ecs/kinesis-data-processor*:log-stream:*'
           - 
             Effect: Allow
             Action: 
@@ -776,6 +774,11 @@ Resources:
             - codebuild:UpdateReport
             - codebuild:BatchPutTestCases
             Resource: !Sub 'arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/*'
+          -
+            Effect: Allow
+            Action:
+              - logs:CreateLogStream
+            Resource: arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*
 
 
   CodeBuildProjectDockerImages01:
@@ -813,8 +816,8 @@ Resources:
   
 Outputs:
   Endpoint:
-    Description: DNS Endpoint for the Application Load ElasticLoadBalancer
-    Value: !GetAtt ElasticLoadBalancer01.DNSName
+    Description: HTTP Endpoint for the Application Load Balancer
+    Value: !Sub 'http://${!GetAtt ElasticLoadBalancer01.DNSName}'
   Dashboard:
     Description: Link to CloudWatch Dashboard
     Value: !Sub 'https://console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=Kinesis-Data-Processor-Dashboard;accountId=${AWS::AccountId}'
