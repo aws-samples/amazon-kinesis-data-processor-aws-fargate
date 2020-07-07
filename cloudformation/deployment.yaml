@@ -316,9 +316,9 @@ Resources:
         - 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole'
 
   KPLPolicy01:
-    Type: AWS::IAM::Policy
+    Type: AWS::IAM::ManagedPolicy
     Properties: 
-      PolicyName: KinesisProducerLibraryPolicy
+      ManagedPolicyName: KinesisProducerLibraryPolicy
       Roles: 
       - !Ref ECSTaskProducerRole01
       PolicyDocument:
@@ -443,9 +443,9 @@ Resources:
         - 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole'
 
   KinesisAutoscalerPolicy01:
-    Type: AWS::IAM::Policy
+    Type: AWS::IAM::ManagedPolicy
     Properties: 
-      PolicyName: KinesisAutoscalerPolicy
+      ManagedPolicyName: KinesisAutoscalerPolicy
       Roles: 
       - !Ref ECSTaskKinesisAutoscalerRole01
       PolicyDocument:
@@ -558,9 +558,9 @@ Resources:
         - 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole'
 
   KCLPolicy01:
-    Type: AWS::IAM::Policy
+    Type: AWS::IAM::ManagedPolicy
     Properties: 
-      PolicyName: KinesisClientLibraryPolicy
+      ManagedPolicyName: KinesisClientLibraryPolicy
       Roles: 
       - !Ref ECSTaskConsumerRole01
       PolicyDocument:
@@ -578,8 +578,9 @@ Resources:
           - kinesis:DescribeStreamConsumer
           - kinesis:SubscribeToShard
           Resource:
+            - !Sub 'arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:stream/data-processing-stream/consumer/*'
             - !Sub 'arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:stream/data-processing-stream'
-            - !Sub 'arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:*/data-processing-stream/consumer/*:*'
+
         - Effect: Allow
           Action:
           - kinesis:DeregisterStreamConsumer
@@ -690,9 +691,9 @@ Resources:
             Action: sts:AssumeRole
 
   EventBridgePolicy01:
-    Type: AWS::IAM::Policy
+    Type: AWS::IAM::ManagedPolicy
     Properties:
-      PolicyName: DataProcessor-ImageBuild-EventBridge-Policy
+      ManagedPolicyName: DataProcessor-ImageBuild-EventBridge-Policy
       Roles: 
       - !Ref EventBridgeRole01
       PolicyDocument:
@@ -737,9 +738,9 @@ Resources:
             Action: 'sts:AssumeRole'
 
   CodeBuildPolicy01:
-    Type: AWS::IAM::Policy
+    Type: AWS::IAM::ManagedPolicy
     Properties: 
-      PolicyName: DataProcessor-ImageBuild-Policy
+      ManagedPolicyName: DataProcessor-ImageBuild-Policy
       Roles: 
       - !Ref CodeBuildRole01
       PolicyDocument:
@@ -762,12 +763,6 @@ Resources:
             Resource: '*'
           - 
             Effect: Allow
-            Action:
-            - logs:PutLogEvents
-            Resource:
-            - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:ecs/kinesis-data-processor*:log-stream:*'
-          - 
-            Effect: Allow
             Action: 
             - codebuild:CreateReportGroup
             - codebuild:CreateReport
@@ -778,7 +773,8 @@ Resources:
             Effect: Allow
             Action:
               - logs:CreateLogStream
-            Resource: arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*
+              - logs:PutLogEvents
+            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*'
 
 
   CodeBuildProjectDockerImages01:
