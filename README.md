@@ -1,4 +1,4 @@
-#Building a scalable streaming data processor with Amazon Kinesis on AWS Fargate
+# Building a scalable streaming data processor with Amazon Kinesis on AWS Fargate
 *Florian Mair, Solutions Architect*
 
 ## Architectural Overview
