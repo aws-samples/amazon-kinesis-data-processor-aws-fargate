@@ -170,7 +170,7 @@ Resources:
     Type: AWS::Kinesis::Stream
     Properties:
       Name: data-processing-stream
-      ShardCount: 2
+      ShardCount: 1
     DependsOn: CodeBuildTriggerRule01
 
   ECSCluster01:
@@ -282,7 +282,7 @@ Resources:
     Type: AWS::ECS::Service
     Properties:
       Cluster: !GetAtt ECSCluster01.Arn
-      DesiredCount: 2
+      DesiredCount: 1
       LaunchType: FARGATE
       LoadBalancers:
         - ContainerName: Producer
@@ -529,7 +529,7 @@ Resources:
     Type: AWS::ECS::Service
     Properties:
       Cluster: !GetAtt ECSCluster01.Arn
-      DesiredCount: 2
+      DesiredCount: 1
       LaunchType: FARGATE
       ServiceName: dataProcessor-consumerservice
       NetworkConfiguration:
@@ -804,19 +804,19 @@ Resources:
         - Name: AWS_DEFAULT_REGION
           Value: !Ref 'AWS::Region'
         - Name: SOURCE_REPO
-          Value: https://flomair-dataprocessor-source.s3-us-west-2.amazonaws.com/blogpost-repo.zip
+          Value: https://github.com/aws-samples/amazon-kinesis-data-processor-aws-fargate
       Source:
         Type: NO_SOURCE
-        BuildSpec: '{"version":0.2,"env":{"git-credential-helper":"yes"},"phases":{"pre_build":{"commands":["echo Fetching repo...","curl -O $SOURCE_REPO","unzip blogpost-repo.zip -d ./kinesis-data-processor","echo Logging in to Amazon ECR...","$(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)"]},"build":{"commands":["echo Build started on `date`","echo Building the Docker image...","docker build -t $IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG ./kinesis-data-processor/blogpost-repo/producer","docker tag $IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG","docker build -t $IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG ./kinesis-data-processor/blogpost-repo/consumer","docker tag $IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG","docker build -t $IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG ./kinesis-data-processor/blogpost-repo/kinesisautoscaler","docker tag $IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG"]},"post_build":{"commands":["echo Build completed on `date`","echo Pushing the Docker image...","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG"]}}}'
+        BuildSpec: '{"version":0.2,"env":{"git-credential-helper":"yes"},"phases":{"pre_build":{"commands":["echo Fetching repo...","git clone $SOURCE_REPO .","echo Logging in to Amazon ECR...","$(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)"]},"build":{"commands":["echo Build started on `date`","echo Building the Docker image...","docker build -t $IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG ./producer","docker tag $IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG","docker build -t $IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG ./consumer","docker tag $IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG","docker build -t $IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG ./kinesisautoscaler","docker tag $IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG"]},"post_build":{"commands":["echo Build completed on `date`","echo Pushing the Docker image...","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG"]}}}'
       TimeoutInMinutes: 10
   
 Outputs:
   Endpoint:
     Description: HTTP Endpoint for the Application Load Balancer
-    Value: !Sub 'http://${!GetAtt ElasticLoadBalancer01.DNSName}'
+    Value: !Sub 'http://${ElasticLoadBalancer01.DNSName}'
   Dashboard:
     Description: Link to CloudWatch Dashboard
     Value: !Sub 'https://console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=Kinesis-Data-Processor-Dashboard;accountId=${AWS::AccountId}'
   SecurityGroup:
-    Description: Modify this SG to grant/restrict access to your Application
+    Description: Modify this SG to grant/restrict access to your application
     Value: !Sub 'https://${AWS::Region}.console.aws.amazon.com/ec2/v2/home?region=${AWS::Region}#SecurityGroup:groupId=${ALBSecurityGroup01.GroupId}'
