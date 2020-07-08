@@ -1,5 +1,6 @@
 # Building a scalable streaming data processor with Amazon Kinesis on AWS Fargate
-*Florian Mair, Solutions Architect*
+
+In this blog post, you will see how to build a scalable producer and consumer application for an [Amazon Kinesis Data Stream (KDS)](https://docs.aws.amazon.com/streams/latest/dev/introduction.html) running on [AWS Fargate](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html). Amazon Kinesis is a fully managed and scalable data stream which enables you to ingest, buffer and process data in real-time. AWS Fargate is a serverless compute engine for containers that works with AWS container orchestration services like [Amazon Elastic Container Service (ECS)](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html), which allows us to easily run, scale and secure containerized applications. Further, this example will leverage the [Kinesis Producer Library (KPL)](https://docs.aws.amazon.com/streams/latest/dev/developing-producers-with-kpl.html#developing-producers-with-kpl-role) and [Kinesis Client Library (KCL)](https://docs.aws.amazon.com/streams/latest/dev/shared-throughput-kcl-consumers.html#shared-throughput-kcl-consumers-overview) to ingest data into the stream and to process it. These libraries help manage the heavy lifting required for retry logic, record aggregation, checkpointing, shard enumeration and other complex tasks for distributed computing, so you can focus on application development.
 
 ## Architectural Overview
 
@@ -31,7 +32,7 @@ Alternatively you can download the [CloudFormation Template File](https://flomai
 
 ### Step 2: Send Records to Kinesis
 
-You have several options to send records to Kinesis. You can do it from the CLI, any API Client that can send REST requests, or you can use a load testing solution like Distributed Load Testing on AWS or Artillery. With load testing additional charges for requests occur, as a guideline 10,000 requests per second for 10 minutes will generate an AWS bill of less than $5. To do a POST request via curl run the following command and replace ALB_ENDPOINT with the DNS record of your ALB. You can find it in the CloudFormation stack’s outputs section. Ensure you have a JSON element “data”. Otherwise the application will not be able to process the record.
+You have several options to send records to Kinesis. You can do it from the CLI, any API Client that can send REST requests, or you can use a load testing solution like [Distributed Load Testing on AWS](https://aws.amazon.com/solutions/distributed-load-testing-on-aws/) or [Artillery](https://artillery.io/). With load testing additional charges for requests occur, as a guideline 10,000 requests per second for 10 minutes will generate an AWS bill of less than $5. To do a POST request via curl run the following command and replace ALB_ENDPOINT with the DNS record of your ALB. You can find it in the CloudFormation stack’s outputs section. Ensure you have a JSON element “data”. Otherwise the application will not be able to process the record.
 ```bash
 curl --location --request POST 'http://ALB-DNS-record' --header 'Content-Type: application/json' --data-raw '{"data":"2000-00-00 00:00:00 INFO HelloExample:1 - This is our load testing record"}
 ```
