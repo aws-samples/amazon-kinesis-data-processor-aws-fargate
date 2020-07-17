@@ -205,25 +205,11 @@ Resources:
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
-  
-  ECSAutoScalingRole01:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: ecs-tasks.amazonaws.com
-            Action: 'sts:AssumeRole'
-      ManagedPolicyArns:
-        - 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceAutoscaleRole'
 
   ECSTaskLogGroup01:
       Type: AWS::Logs::LogGroup
       Properties: 
         LogGroupName: ecs/kinesis-data-processor-producer
-
-
 
   ECSProducerServiceSecurityGroup01:
     Type: AWS::EC2::SecurityGroup
@@ -347,7 +333,7 @@ Resources:
       ResourceId: !Join ['/', [service, !Ref ECSCluster01, !GetAtt ECSServiceProducer01.Name]] 
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
-      RoleARN: !GetAtt ECSAutoScalingRole01.Arn
+      RoleARN: !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService'
   
   ECSAutoScalingProducerPolicy:
     Type: AWS::ApplicationAutoScaling::ScalingPolicy
@@ -612,7 +598,7 @@ Resources:
       ResourceId: !Join ['/', [service, !Ref ECSCluster01, !GetAtt ECSServiceConsumer01.Name]]
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
-      RoleARN: !GetAtt ECSAutoScalingRole01.Arn
+      RoleARN: !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService'
   
   ECSAutoScalingConsumerPolicy:
     Type: AWS::ApplicationAutoScaling::ScalingPolicy
