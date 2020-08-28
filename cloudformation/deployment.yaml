@@ -585,7 +585,7 @@ Resources:
           - dynamodb:UpdateTable
           - dynamodb:GetRecords
           Resource:
-          - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/DataProcessorConsumer'
+          - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*'
           - !Sub 'arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:stream/data-processing-stream'
 
     DependsOn: ECSTaskConsumerRole01
