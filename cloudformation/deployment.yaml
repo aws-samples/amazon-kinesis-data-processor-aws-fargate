@@ -180,17 +180,17 @@ Resources:
 
   ProducerRepository01:
     Type: AWS::ECR::Repository
-    Properties: 
+    Properties:
       RepositoryName: kinesis-data-processor/producer
-  
+
   ConsumerRepository01:
     Type: AWS::ECR::Repository
-    Properties: 
+    Properties:
       RepositoryName: kinesis-data-processor/consumer
 
   KinesisAutoscalerRepository01:
     Type: AWS::ECR::Repository
-    Properties: 
+    Properties:
       RepositoryName: kinesis-data-processor/kinesisautoscaler
 
 
@@ -793,7 +793,7 @@ Resources:
           Value: https://github.com/aws-samples/amazon-kinesis-data-processor-aws-fargate
       Source:
         Type: NO_SOURCE
-        BuildSpec: '{"version":0.2,"env":{"git-credential-helper":"yes"},"phases":{"pre_build":{"commands":["echo Fetching repo...","git clone $SOURCE_REPO .","echo Logging in to Amazon ECR...","$(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)"]},"build":{"commands":["echo Build started on `date`","echo Building the Docker image...","docker build -t $IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG ./producer","docker tag $IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG","docker build -t $IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG ./consumer","docker tag $IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG","docker build -t $IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG ./kinesisautoscaler","docker tag $IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG"]},"post_build":{"commands":["echo Build completed on `date`","echo Pushing the Docker image...","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG"]}}}'
+        BuildSpec: '{"version":0.2,"env":{"git-credential-helper":"yes"},"phases":{"pre_build":{"commands":["echo Fetching repo...","git clone $SOURCE_REPO .","echo Logging in to Amazon ECR...","$(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)"]},"build":{"commands":["echo Build started on `date`","echo Building the Docker image...","docker build -t $IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG ./producer","docker tag $IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG","docker build -t $IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG ./consumer_v2","docker tag $IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG","docker build -t $IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG ./kinesisautoscaler","docker tag $IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG"]},"post_build":{"commands":["echo Build completed on `date`","echo Pushing the Docker image...","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG"]}}}'
       TimeoutInMinutes: 10
   
 Outputs:
