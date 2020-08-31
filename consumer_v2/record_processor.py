@@ -7,10 +7,16 @@ from __future__ import print_function
 
 import sys
 import time
+import logging
 
 from amazon_kclpy import kcl
 from amazon_kclpy.v3 import processor
 
+logging.basicConfig(filename='app/record_processor.log',
+                    level=logging.INFO,
+                    format='%(asctime)s [%(module)s] %(levelname)s  %(funcName)s - %(message)s',
+                    datefmt='%H:%M:%S'
+                    )
 
 class RecordProcessor(processor.RecordProcessorBase):
     """
@@ -92,7 +98,8 @@ class RecordProcessor(processor.RecordProcessorBase):
         ####################################
         # Insert your processing logic here
         ####################################
-        print(data)
+
+        logging.info(data.decode('UTF-8'))
 
     def should_update_sequence(self, sequence_number, sub_sequence_number):
         """
