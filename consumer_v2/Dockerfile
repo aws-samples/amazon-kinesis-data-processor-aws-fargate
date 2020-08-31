@@ -12,8 +12,10 @@ RUN git clone --depth 1 --branch v2.0.1 https://github.com/awslabs/amazon-kinesi
     mv /kclpy/samples/amazon_kclpy_helper.py /app &&\
     rm -rf /kclpy
 
-COPY record_processor.properties record_processor.py setup.py /app/
+COPY record_processor.properties record_processor.py setup.py logback.xml run.sh /app/
 
-RUN python3 app/setup.py install
+RUN python3 app/setup.py install &&\
+    chmod 755 /app/run.sh
+    #./app/run.sh
 
-ENTRYPOINT `python3 /usr/bin/amazon_kclpy_helper.py --print_command --java /usr/bin/java --properties app/record_processor.properties`
+ENTRYPOINT ["sh", "./app/run.sh"]
