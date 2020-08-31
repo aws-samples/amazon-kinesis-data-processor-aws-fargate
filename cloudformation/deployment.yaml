@@ -2,20 +2,6 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: Sample deployment for the AWS blog post "Building a scalable streaming data processor with Amazon Kinesis on AWS Fargate"
 
 Parameters:
-  MaxProducers:
-    Type: String 
-    Default: 20
-    Description: Maximum number of Producer Containers
-  
-  MaxConsumers:
-    Type: String 
-    Default: 10
-    Description: Maximum number of Consumer Containers
-
-  ContainerScalingTarget:
-    Type: String 
-    Default: 65
-    Description: Value for Target CPU Utilization
   
   InboundCIDRRange:
     Type: String 
@@ -29,6 +15,7 @@ Resources:
     Type: AWS::EC2::VPC
     Properties: 
       CidrBlock: 10.0.0.0/16
+    DependsOn: KinesisDataStream01
 
   PublicSubnet01:
     Type: AWS::EC2::Subnet
@@ -329,7 +316,7 @@ Resources:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
     Properties:
       MinCapacity: 1
-      MaxCapacity: !Ref MaxProducers
+      MaxCapacity: 15
       ResourceId: !Join ['/', [service, !Ref ECSCluster01, !GetAtt ECSServiceProducer01.Name]] 
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
@@ -346,7 +333,7 @@ Resources:
           PredefinedMetricType: ECSServiceAverageCPUUtilization
         ScaleInCooldown: 60
         ScaleOutCooldown: 60
-        TargetValue: !Ref ContainerScalingTarget
+        TargetValue: 65
 
   ECSTaskLogGroup03:
       Type: AWS::Logs::LogGroup
@@ -594,7 +581,7 @@ Resources:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
     Properties:
       MinCapacity: 1
-      MaxCapacity: !Ref MaxConsumers
+      MaxCapacity: 15
       ResourceId: !Join ['/', [service, !Ref ECSCluster01, !GetAtt ECSServiceConsumer01.Name]]
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
@@ -793,7 +780,7 @@ Resources:
           Value: https://github.com/aws-samples/amazon-kinesis-data-processor-aws-fargate
       Source:
         Type: NO_SOURCE
-        BuildSpec: '{"version":0.2,"env":{"git-credential-helper":"yes"},"phases":{"pre_build":{"commands":["echo Fetching repo...","git clone $SOURCE_REPO .","echo Logging in to Amazon ECR...","$(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)"]},"build":{"commands":["echo Build started on `date`","echo Building the Docker image...","docker build -t $IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG ./producer","docker tag $IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG","docker build -t $IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG ./consumer_v2","docker tag $IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG","docker build -t $IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG ./kinesisautoscaler","docker tag $IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG"]},"post_build":{"commands":["echo Build completed on `date`","echo Pushing the Docker image...","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG"]}}}'
+        BuildSpec: '{"version":0.2,"env":{"git-credential-helper":"yes"},"phases":{"pre_build":{"commands":["echo Fetching repo...","git clone --single-branch --branch dev $SOURCE_REPO .","echo Logging in to Amazon ECR...","$(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)"]},"build":{"commands":["echo Build started on `date`","echo Building the Docker image...","docker build -t $IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG ./producer","docker tag $IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG","docker build -t $IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG --build-arg AWS_REGION=$AWS_DEFAULT_REGION ./consumer_v2 ","docker tag $IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG","docker build -t $IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG ./kinesisautoscaler","docker tag $IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG"]},"post_build":{"commands":["echo Build completed on `date`","echo Pushing the Docker image...","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG"]}}}'
       TimeoutInMinutes: 10
   
 Outputs:

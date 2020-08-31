@@ -8,15 +8,23 @@ from __future__ import print_function
 import sys
 import time
 import logging
+import logging.handlers as handlers
 
 from amazon_kclpy import kcl
 from amazon_kclpy.v3 import processor
 
-logging.basicConfig(filename='app/record_processor.log',
-                    level=logging.INFO,
-                    format='%(asctime)s [%(module)s] %(levelname)s  %(funcName)s - %(message)s',
-                    datefmt='%H:%M:%S'
-                    )
+#Logger writes to file because stdout is used by MultiLangDaemon
+logger = logging.getLogger("record_processor")
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter(
+        '%(asctime)s [%(module)s] %(levelname)s  %(funcName)s - %(message)s',
+        '%H:%M:%S'
+)
+handler = handlers.RotatingFileHandler('app/logs/record_processor.log', maxBytes=300, backupCount=5)
+handler.setLevel(logging.INFO)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
 
 class RecordProcessor(processor.RecordProcessorBase):
     """
@@ -34,9 +42,6 @@ class RecordProcessor(processor.RecordProcessorBase):
         self._largest_seq = (None, None)
         self._largest_sub_seq = None
         self._last_checkpoint_time = None
-
-    def log(self, message):
-        sys.stderr.write(message)
 
     def initialize(self, initialize_input):
         """
@@ -67,7 +72,7 @@ class RecordProcessor(processor.RecordProcessorBase):
                     # A ShutdownException indicates that this record processor should be shutdown. This is due to
                     # some failover event, e.g. another MultiLangDaemon has taken the lease for this shard.
                     #
-                    print('Encountered shutdown exception, skipping checkpoint')
+                    logging.error('Encountered shutdown exception, skipping checkpoint')
                     return
                 elif 'ThrottlingException' == e.value:
                     #
@@ -75,15 +80,15 @@ class RecordProcessor(processor.RecordProcessorBase):
                     # dynamo writes. We will sleep temporarily to let it recover.
                     #
                     if self._CHECKPOINT_RETRIES - 1 == n:
-                        sys.stderr.write('Failed to checkpoint after {n} attempts, giving up.\n'.format(n=n))
+                        logging.error('Failed to checkpoint after {n} attempts, giving up.\n'.format(n=n))
                         return
                     else:
                         print('Was throttled while checkpointing, will attempt again in {s} seconds'
                               .format(s=self._SLEEP_SECONDS))
                 elif 'InvalidStateException' == e.value:
-                    sys.stderr.write('MultiLangDaemon reported an invalid state while checkpointing.\n')
+                    logging.error('MultiLangDaemon reported an invalid state while checkpointing.\n')
                 else:  # Some other error
-                    sys.stderr.write('Encountered an error while checkpointing, error was {e}.\n'.format(e=e))
+                    logging.error('Encountered an error while checkpointing, error was {e}.\n'.format(e=e))
             time.sleep(self._SLEEP_SECONDS)
 
     def process_record(self, data, partition_key, sequence_number, sub_sequence_number):
@@ -138,17 +143,17 @@ class RecordProcessor(processor.RecordProcessorBase):
                 self._last_checkpoint_time = time.time()
 
         except Exception as e:
-            self.log("Encountered an exception while processing records. Exception was {e}\n".format(e=e))
+            logging.error("Encountered an exception while processing records. Exception was {e}\n".format(e=e))
 
     def lease_lost(self, lease_lost_input):
-        self.log("Lease has been lost")
+        logging.warn("Lease has been lost")
 
     def shard_ended(self, shard_ended_input):
-        self.log("Shard has ended checkpointing")
+        logging.warn("Shard has ended checkpointing")
         shard_ended_input.checkpointer.checkpoint()
 
     def shutdown_requested(self, shutdown_requested_input):
-        self.log("Shutdown has been requested, checkpointing.")
+        logging.warn("Shutdown has been requested, checkpointing.")
         shutdown_requested_input.checkpointer.checkpoint()
 
 
