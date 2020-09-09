@@ -34,7 +34,7 @@ Alternatively you can download the [CloudFormation Template File](https://flomai
 
 You have several options to send records to Kinesis. You can do it from the CLI, any API Client that can send REST requests, or you can use a load testing solution like [Distributed Load Testing on AWS](https://aws.amazon.com/solutions/distributed-load-testing-on-aws/) or [Artillery](https://artillery.io/). With load testing additional charges for requests occur, as a guideline 10,000 requests per second for 10 minutes will generate an AWS bill of less than $5. To do a POST request via curl run the following command and replace ALB_ENDPOINT with the DNS record of your ALB. You can find it in the CloudFormation stack’s outputs section. Ensure you have a JSON element “data”. Otherwise the application will not be able to process the record.
 ```bash
-curl --location --request POST 'http://ALB-DNS-record' --header 'Content-Type: application/json' --data-raw '{"data":"2000-00-00 00:00:00 INFO HelloExample:1 - This is our load testing record"}
+curl --location --request POST 'http://ALB-DNS-record' --header 'Content-Type: application/json' --data-raw '{"data":"This is a load testing record"}
 ```
 
 ### Step 3: Monitor your Stream and Applications
