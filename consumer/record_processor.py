@@ -14,13 +14,13 @@ from amazon_kclpy import kcl
 from amazon_kclpy.v3 import processor
 
 #Logger writes to file because stdout is used by MultiLangDaemon
-logger = logging.getLogger("record_processor")
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 formatter = logging.Formatter(
         '%(asctime)s [%(module)s] %(levelname)s  %(funcName)s - %(message)s',
         '%H:%M:%S'
 )
-handler = handlers.RotatingFileHandler('app/logs/record_processor.log', maxBytes=20000, backupCount=5)
+handler = handlers.RotatingFileHandler('/app/logs/record_processor.log', maxBytes=1000, backupCount=5)
 handler.setLevel(logging.INFO)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
@@ -104,7 +104,7 @@ class RecordProcessor(processor.RecordProcessorBase):
         # Insert your processing logic here
         ####################################
 
-        logging.info(data.decode('UTF-8'))
+        logger.info(data.decode('UTF-8'))
 
     def should_update_sequence(self, sequence_number, sub_sequence_number):
         """
