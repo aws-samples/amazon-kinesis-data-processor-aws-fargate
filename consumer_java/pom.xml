@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+    <groupId>com.amazonaws.services.kinesis.samples.dataprocessor</groupId>
+    <artifactId>Consumer</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>Kinesis Data Processor Consumer</name>
+    <description>Kinesis Data Processor Consumer Application</description>
+    
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <junit.jupiter.version>5.6.2</junit.jupiter.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.kinesis</groupId>
+            <artifactId>amazon-kinesis-client</artifactId>
+            <version>2.2.10</version>
+        </dependency>
+       <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+        <dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>${junit.jupiter.version}</version>
+			<scope>test</scope>
+		</dependency>
+    </dependencies>
+    <build>
+        <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>3.2.3</version>
+            <executions>
+            <execution>
+                <phase>package</phase>
+                <goals>
+                <goal>shade</goal>
+                </goals>
+                <configuration>
+                 <createDependencyReducedPom>false</createDependencyReducedPom>
+                <transformers>
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                    <mainClass>com.amazonaws.services.kinesis.samples.dataprocessor.DataProcessorApplication</mainClass>
+                    <manifestEntries>
+                        <Multi-Release>true</Multi-Release>
+                    </manifestEntries>
+                    </transformer>
+                </transformers>
+                </configuration>
+            </execution>
+            </executions>
+        </plugin>
+        </plugins>
+    </build>
+</project>

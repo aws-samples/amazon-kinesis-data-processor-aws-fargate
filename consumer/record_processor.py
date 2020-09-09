@@ -17,7 +17,7 @@ from amazon_kclpy.v3 import processor
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 formatter = logging.Formatter(
-        '%(asctime)s [%(module)s] %(levelname)s  %(funcName)s - %(message)s',
+        '%(asctime)s.%(msecs)03d [%(module)s] %(levelname)s  %(funcName)s - %(message)s',
         '%H:%M:%S'
 )
 handler = handlers.RotatingFileHandler('/app/logs/record_processor.log', maxBytes=1000, backupCount=5)
