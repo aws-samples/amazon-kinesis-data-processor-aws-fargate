@@ -167,21 +167,17 @@ Resources:
 
   ProducerRepository01:
     Type: AWS::ECR::Repository
-<<<<<<< HEAD
     Properties:
       RepositoryName: kinesis-data-processor/producer
 
   ConsumerRepository01:
     Type: AWS::ECR::Repository
     Properties:
-=======
-    Properties:
       RepositoryName: kinesis-data-processor/producer
 
   ConsumerRepository01:
     Type: AWS::ECR::Repository
     Properties:
->>>>>>> e8a5851cfaaa5690d98d9156d4960b2c233bcb63
       RepositoryName: kinesis-data-processor/consumer
 
   KinesisAutoscalerRepository01:
