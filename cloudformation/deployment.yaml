@@ -1,0 +1,808 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Sample deployment for the AWS blog post "Building a scalable streaming data processor with Amazon Kinesis on AWS Fargate"
+
+Parameters:
+  
+  InboundCIDRRange:
+    Type: String 
+    Description: IP CIDR block that is allowed to send Records to the Application
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/0-32
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(3[0-2]|[1-2][0-9]|[0-9]))$
+
+Resources:
+
+  VPC01:
+    Type: AWS::EC2::VPC
+    Properties: 
+      CidrBlock: 10.0.0.0/16
+    DependsOn: KinesisDataStream01
+
+  PublicSubnet01:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AvailabilityZone: !Select 
+      - 0
+      - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: 10.0.0.0/24
+      MapPublicIpOnLaunch: true
+      VpcId:
+        Ref: VPC01
+
+  PublicSubnet02:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AvailabilityZone: !Select 
+      - 1
+      - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      VpcId:
+        Ref: VPC01
+
+  PrivateSubnet01:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC01
+      AvailabilityZone: !Select 
+      - 0
+      - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: 10.0.10.0/24
+      MapPublicIpOnLaunch: false
+
+  PrivateSubnet02:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC01
+      AvailabilityZone: !Select 
+      - 1
+      - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: 10.0.11.0/24
+      MapPublicIpOnLaunch: false
+
+  InternetGateway01:
+    Type: AWS::EC2::InternetGateway
+
+  InternetGatewayAttachment01:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway01
+      VpcId: !Ref VPC01
+
+  NatGateway01EIP:
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGatewayAttachment01
+    Properties:
+      Domain: vpc
+
+  NatGateway02EIP:
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGatewayAttachment01
+    Properties:
+      Domain: vpc
+
+  NatGateway01:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGateway01EIP.AllocationId
+      SubnetId: !Ref PublicSubnet01
+
+  NatGateway02:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGateway02EIP.AllocationId
+      SubnetId: !Ref PublicSubnet02
+
+  PublicRouteTable01:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC01
+
+  DefaultPublicRoute01:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment01
+    Properties:
+      RouteTableId: !Ref PublicRouteTable01
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway01
+
+  PublicSubnet01RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable01
+      SubnetId: !Ref PublicSubnet01
+
+  PublicSubnet02RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable01
+      SubnetId: !Ref PublicSubnet02
+
+  PrivateRouteTable01:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC01
+
+  DefaultPrivateRoute01:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable01
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway01
+
+  PrivateSubnet01RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable01
+      SubnetId: !Ref PrivateSubnet01
+  
+  PrivateRouteTable02:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC01
+
+  DefaultPrivateRoute02:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable02
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway02
+
+  PrivateSubnet02RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable02
+      SubnetId: !Ref PrivateSubnet02
+
+  KinesisDataStream01:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      Name: data-processing-stream
+      ShardCount: 1
+    DependsOn: CodeBuildTriggerRule01
+
+  ECSCluster01:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: dataprocessor-cluster
+
+  ProducerRepository01:
+    Type: AWS::ECR::Repository
+<<<<<<< HEAD
+    Properties:
+      RepositoryName: kinesis-data-processor/producer
+
+  ConsumerRepository01:
+    Type: AWS::ECR::Repository
+    Properties:
+=======
+    Properties:
+      RepositoryName: kinesis-data-processor/producer
+
+  ConsumerRepository01:
+    Type: AWS::ECR::Repository
+    Properties:
+>>>>>>> e8a5851cfaaa5690d98d9156d4960b2c233bcb63
+      RepositoryName: kinesis-data-processor/consumer
+
+  KinesisAutoscalerRepository01:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: kinesis-data-processor/kinesisautoscaler
+
+
+  ECSTaskExecutionRole01:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
+
+  ECSTaskLogGroup01:
+      Type: AWS::Logs::LogGroup
+      Properties: 
+        LogGroupName: ecs/kinesis-data-processor-producer
+
+  ECSProducerServiceSecurityGroup01:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: Security Group for Producer Application Containers
+      VpcId: !Ref VPC01
+      SecurityGroupIngress: 
+      - IpProtocol: tcp 
+        FromPort: 8080
+        ToPort: 8080
+        SourceSecurityGroupId: !Ref ALBSecurityGroup01
+    DependsOn: ALBSecurityGroup01
+
+  ECSTaskProducerDefinition01:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: Producer
+      NetworkMode: awsvpc
+      Cpu: 2048
+      Memory: 4096
+      ContainerDefinitions:
+        - Cpu: 2048
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/kinesis-data-processor/producer'
+          Memory: 4096
+          Name: Producer
+          PortMappings:
+            - ContainerPort: 8080
+          LogConfiguration: 
+            LogDriver: awslogs
+            Options:
+              awslogs-group: ecs/kinesis-data-processor-producer
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: producer
+          Environment:
+            - Name: REGION 
+              Value: !Ref 'AWS::Region'
+            - Name: STREAM_NAME
+              Value: data-processing-stream
+      ExecutionRoleArn: !Ref ECSTaskExecutionRole01
+      TaskRoleArn: !Ref ECSTaskProducerRole01
+      RequiresCompatibilities: 
+        - FARGATE
+    DependsOn: ECSTaskLogGroup01
+
+  ECSTaskProducerRole01:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+
+  ECSServiceProducer01:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !GetAtt ECSCluster01.Arn
+      DesiredCount: 1
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: Producer
+          ContainerPort: 8080
+          TargetGroupArn: !Ref ALBTargetGroup01
+      ServiceName: dataProcessor-producerservice
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - !Ref ECSProducerServiceSecurityGroup01
+          Subnets:
+            - !Ref PrivateSubnet01
+            - !Ref PrivateSubnet02
+      SchedulingStrategy: REPLICA
+      TaskDefinition: !Ref ECSTaskProducerDefinition01
+    DependsOn: ALBListener01
+
+  ECSServiceRoleProducer01:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2008-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: ecs.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole'
+
+  KPLPolicy01:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      ManagedPolicyName: KinesisProducerLibraryPolicy
+      Roles: 
+      - !Ref ECSTaskProducerRole01
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Action:
+              - kinesis:ListStreams
+              - kinesis:ListShards
+              - kinesis:PutRecords
+              - kinesis:PutRecord
+            Resource: !GetAtt KinesisDataStream01.Arn
+          - 
+            Effect: "Allow"
+            Action:
+              - cloudwatch:PutMetricData
+            Resource: "*"   
+    DependsOn: ECSTaskProducerRole01
+
+  ECSAutoScalingTargetProducer01:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MinCapacity: 1
+      MaxCapacity: 15
+      ResourceId: !Join ['/', [service, !Ref ECSCluster01, !GetAtt ECSServiceProducer01.Name]] 
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+      RoleARN: !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService'
+  
+  ECSAutoScalingProducerPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyType: TargetTrackingScaling
+      PolicyName: KinesisProducerScalingPolicy
+      ScalingTargetId: !Ref ECSAutoScalingTargetProducer01
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ECSServiceAverageCPUUtilization
+        ScaleInCooldown: 60
+        ScaleOutCooldown: 60
+        TargetValue: 65
+
+  ECSTaskLogGroup03:
+      Type: AWS::Logs::LogGroup
+      Properties: 
+        LogGroupName: ecs/kinesis-data-processor-kinesisAutoscaler
+  
+  ECSAutoScalerServiceSecurityGroup01:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: Security Group for Kinesis Autoscaler Application Containers
+      VpcId: !Ref VPC01
+  
+  ECSTaskKinesisAutoscalerDefinition01:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: KinesisAutoscaler
+      NetworkMode: awsvpc
+      Cpu: 512
+      Memory: 1024
+      ContainerDefinitions:
+        - Cpu: 512
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/kinesis-data-processor/kinesisautoscaler'
+          Memory: 1024
+          Name: KinesisAutoscaler
+          LogConfiguration: 
+            LogDriver: awslogs
+            Options:
+              awslogs-group: ecs/kinesis-data-processor-kinesisAutoscaler
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: kinesisAutoscaler
+          Environment:
+            - Name: CONFIG_FILE
+              Value: !Sub 'https://dataprocessor-source.s3-us-west-2.amazonaws.com/config/configuration-${AWS::Region}.json'
+      ExecutionRoleArn: !Ref ECSTaskExecutionRole01
+      TaskRoleArn: !Ref ECSTaskKinesisAutoscalerRole01
+      RequiresCompatibilities: 
+        - FARGATE
+    DependsOn: ECSTaskLogGroup03
+
+  ECSTaskKinesisAutoscalerRole01:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+  
+  ECSServiceKinesisAutoscaler01:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !GetAtt ECSCluster01.Arn
+      DesiredCount: 1
+      LaunchType: FARGATE
+      ServiceName: dataProcessor-kinesisautoscalerservice
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - !Ref ECSAutoScalerServiceSecurityGroup01
+          Subnets:
+            - !Ref PrivateSubnet01
+            - !Ref PrivateSubnet02
+      SchedulingStrategy: REPLICA
+      TaskDefinition: !Ref ECSTaskKinesisAutoscalerDefinition01
+  
+  ECSServiceRoleKinesisAutoscaler01:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2008-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: ecs.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole'
+
+  KinesisAutoscalerPolicy01:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      ManagedPolicyName: KinesisAutoscalerPolicy
+      Roles: 
+      - !Ref ECSTaskKinesisAutoscalerRole01
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Action: 
+            - kinesis:DescribeStreamSummary
+            - kinesis:UpdateShardCount
+            - kinesis:ListShards
+            - kinesis:SplitShard
+            - kinesis:MergeShards
+            Resource: !GetAtt KinesisDataStream01.Arn
+          - 
+            Effect: "Allow"
+            Action:
+            - cloudwatch:PutMetricData
+            Resource: !GetAtt ECSTaskLogGroup03.Arn
+          -
+            Effect: 'Allow'
+            Action:
+            - cloudwatch:GetMetricStatistics
+            Resource: '*'
+
+  ECSTaskLogGroup02:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: ecs/kinesis-data-processor-consumer 
+
+  ECSConsumerServiceSecurityGroup01:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: Security Group for Consumer Application Containers
+      VpcId: !Ref VPC01
+
+  ECSTaskConsumerDefinition01:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: Consumer
+      NetworkMode: awsvpc
+      Cpu: 2048
+      Memory: 4096
+      ContainerDefinitions:
+        - Cpu: 2048
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/kinesis-data-processor/consumer'
+          Memory: 4096
+          Name: Consumer
+          PortMappings:
+            - ContainerPort: 8080
+          LogConfiguration: 
+            LogDriver: awslogs
+            Options:
+              awslogs-group: ecs/kinesis-data-processor-consumer
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: consumer
+          Environment:
+            - Name: REGION 
+              Value: !Ref 'AWS::Region'
+            - Name: STREAM_NAME
+              Value: data-processing-stream 
+            - Name: APPLICATION_NAME
+              Value: DataProcessorConsumer
+      ExecutionRoleArn: !Ref ECSTaskExecutionRole01
+      TaskRoleArn: !Ref ECSTaskConsumerRole01
+      RequiresCompatibilities: 
+        - FARGATE
+    DependsOn: ECSTaskLogGroup02
+
+  ECSTaskConsumerRole01:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+
+  ECSServiceConsumer01:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !GetAtt ECSCluster01.Arn
+      DesiredCount: 1
+      LaunchType: FARGATE
+      ServiceName: dataProcessor-consumerservice
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - !Ref ECSConsumerServiceSecurityGroup01
+          Subnets:
+            - !Ref PrivateSubnet01
+            - !Ref PrivateSubnet02
+      SchedulingStrategy: REPLICA
+      TaskDefinition: !Ref ECSTaskConsumerDefinition01
+
+  ECSServiceRoleConsumer01:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2008-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: ecs.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole'
+
+  KCLPolicy01:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      ManagedPolicyName: KinesisClientLibraryPolicy
+      Roles: 
+      - !Ref ECSTaskConsumerRole01
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - cloudwatch:PutMetricData
+          - kinesis:ListShards
+          - kinesis:DescribeLimits
+          Resource:
+          - '*'
+        - Effect: Allow
+          Action:
+          - kinesis:DescribeStreamConsumer
+          - kinesis:SubscribeToShard
+          Resource:
+            - !Sub 'arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:stream/data-processing-stream/consumer/*'
+            - !Sub 'arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:stream/data-processing-stream'
+
+        - Effect: Allow
+          Action:
+          - kinesis:DeregisterStreamConsumer
+          - dynamodb:PutItem
+          - dynamodb:DeleteItem
+          - kinesis:GetShardIterator
+          - dynamodb:Scan
+          - dynamodb:UpdateItem
+          - dynamodb:DeleteTable
+          - kinesis:RegisterStreamConsumer
+          - dynamodb:CreateTable
+          - kinesis:DescribeStreamSummary
+          - dynamodb:DescribeTable
+          - dynamodb:GetItem
+          - kinesis:GetRecords
+          - dynamodb:UpdateTable
+          - dynamodb:GetRecords
+          Resource:
+          - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/DataProcessorConsumer'
+          - !Sub 'arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:stream/data-processing-stream'
+
+    DependsOn: ECSTaskConsumerRole01
+
+  ECSAutoScalingTargetConsumer01:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MinCapacity: 1
+      MaxCapacity: 15
+      ResourceId: !Join ['/', [service, !Ref ECSCluster01, !GetAtt ECSServiceConsumer01.Name]]
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+      RoleARN: !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService'
+  
+  ECSAutoScalingConsumerPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyType: TargetTrackingScaling
+      PolicyName: KinesisConsumerScalingPolicy
+      ScalingTargetId: !Ref ECSAutoScalingTargetConsumer01
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ECSServiceAverageCPUUtilization
+        ScaleInCooldown: 10
+        ScaleOutCooldown: 10
+        TargetValue: 65
+
+  ALBSecurityGroup01:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: Security Group for LoadBalancer
+      SecurityGroupIngress: 
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: !Ref InboundCIDRRange
+      VpcId: !Ref VPC01
+
+  ElasticLoadBalancer01:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties: 
+      Scheme: internet-facing
+      SecurityGroups: 
+        - !Ref ALBSecurityGroup01
+      Subnets: 
+        - !Ref PublicSubnet01
+        - !Ref PublicSubnet02
+      Type: application
+
+  ALBTargetGroup01:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties: 
+      HealthCheckIntervalSeconds: 6
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthCheckPath: /healthcheck
+      Port: 8080
+      Protocol: HTTP
+      TargetGroupAttributes: 
+        - Key: deregistration_delay.timeout_seconds
+          Value: 60 
+      TargetType: ip
+      VpcId: !Ref VPC01
+
+  ALBListener01:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - TargetGroupArn: !Ref ALBTargetGroup01
+          Type: forward
+      LoadBalancerArn: !Ref ElasticLoadBalancer01
+      Port: 80
+      Protocol: HTTP
+  
+  CloudWatchDashboard01:
+    Type: AWS::CloudWatch::Dashboard
+    Properties: 
+      DashboardBody: !Sub '{"widgets":[{"type":"metric","x":0,"y":2,"width":6,"height":6,"properties":{"metrics":[["AWS/ECS","CPUUtilization","ServiceName","dataProcessor-producerservice","ClusterName","dataprocessor-cluster",{"color":"#ff7f0e"}]],"view":"timeSeries","stacked":true,"region":"${AWS::Region}","stat":"Average","period":60,"title":"CPU Utilization Producer","legend":{"position":"hidden"}}},{"type":"metric","x":6,"y":2,"width":6,"height":6,"properties":{"metrics":[["AWS/ECS","CPUUtilization","ServiceName","dataProcessor-consumerservice","ClusterName","dataprocessor-cluster",{"color":"#ff7f0e"}]],"view":"timeSeries","stacked":true,"region":"${AWS::Region}","stat":"Average","period":60,"title":"CPU Utilization Consumer","legend":{"position":"hidden"}}},{"type":"metric","x":0,"y":9,"width":6,"height":6,"properties":{"metrics":[["AWS/Kinesis","PutRecords.Success","StreamName","data-processing-stream",{"color":"#ff7f0e","id":"m1"}]],"view":"timeSeries","stacked":true,"region":"${AWS::Region}","stat":"SampleCount","period":60,"title":"Sucessful PutRecords in Stream","legend":{"position":"hidden"},"yAxis":{"left":{"showUnits":true},"right":{"showUnits":false}},"liveData":false}},{"type":"metric","x":18,"y":9,"width":6,"height":6,"properties":{"metrics":[["KinesisProducerLibrary","UserRecordsDataPut","StreamName","data-processing-stream",{"color":"#ff7f0e"}]],"view":"timeSeries","stacked":true,"region":"${AWS::Region}","stat":"SampleCount","period":60,"title":"UserRecords in Stream","legend":{"position":"hidden"},"yAxis":{"left":{"showUnits":false}}}},{"type":"text","x":0,"y":0,"width":24,"height":1,"properties":{"markdown":"\n# Kinesis Data Processing Dashboard\n"}},{"type":"text","x":0,"y":1,"width":24,"height":1,"properties":{"markdown":"\n## Producer / Consumer Metrics\n"}},{"type":"text","x":0,"y":8,"width":24,"height":1,"properties":{"markdown":"\n## Stream Metrics\n"}},{"type":"metric","x":12,"y":9,"width":6,"height":6,"properties":{"metrics":[["AWS/Kinesis","WriteProvisionedThroughputExceeded","StreamName","data-processing-stream",{"color":"#ff7f0e"}]],"view":"timeSeries","stacked":true,"region":"${AWS::Region}","stat":"Average","period":60,"title":"Provisioned Throughput Exceeded","legend":{"position":"hidden"},"yAxis":{"left":{"showUnits":false}}}},{"type":"metric","x":18,"y":2,"width":6,"height":3,"properties":{"metrics":[["AWS/ECS","CPUUtilization","ServiceName","dataProcessor-producerservice","ClusterName","dataprocessor-cluster",{"label":"Number of Tasks","color":"#ff7f0e"}]],"view":"timeSeries","region":"${AWS::Region}","stat":"SampleCount","period":60,"title":"Active Producers","setPeriodToTimeRange":false,"stacked":true,"yAxis":{"left":{"showUnits":false}}}},{"type":"metric","x":18,"y":5,"width":6,"height":3,"properties":{"metrics":[["AWS/ECS","CPUUtilization","ServiceName","dataProcessor-consumerservice","ClusterName","dataprocessor-cluster",{"label":"Number of Tasks","color":"#ff7f0e"}]],"view":"timeSeries","region":"${AWS::Region}","stat":"SampleCount","period":60,"title":"Active Consumers","stacked":true,"yAxis":{"left":{"showUnits":false}}}},{"type":"metric","x":12,"y":2,"width":6,"height":6,"properties":{"metrics":[["AWS/Kinesis","SubscribeToShardEvent.MillisBehindLatest","StreamName","data-processing-stream","ConsumerName","DataProcessorConsumer",{"color":"#ff7f0e"}]],"view":"timeSeries","stacked":true,"region":"${AWS::Region}","title":"Consumer Behind Latest ","period":300,"stat":"Average","legend":{"position":"hidden"},"liveData":false}},{"type":"metric","x":6,"y":9,"width":6,"height":6,"properties":{"metrics":[[{"expression":"100*(m1)","label":"Expression1","id":"e1","color":"#ff7f0e","region":"${AWS::Region}"}],["AWS/Kinesis","PutRecords.Success","StreamName","data-processing-stream",{"id":"m1","color":"#1f77b4","visible":false}]],"view":"timeSeries","stacked":true,"region":"${AWS::Region}","stat":"Average","period":300,"title":"Put Success in Percentage","legend":{"position":"hidden"},"yAxis":{"left":{"showUnits":false,"label":"","max":100,"min":0}},"annotations":{"horizontal":[{"visible":false,"label":"100%","value":1}]},"liveData":true}}]}'
+      DashboardName: Kinesis-Data-Processor-Dashboard
+
+  EventBridgeRole01:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sts:AssumeRole
+
+  EventBridgePolicy01:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: DataProcessor-ImageBuild-EventBridge-Policy
+      Roles: 
+      - !Ref EventBridgeRole01
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - 
+            Effect: Allow
+            Action: 
+            - codebuild:StartBuild
+            Resource: 
+            - !GetAtt CodeBuildProjectDockerImages01.Arn
+
+  CodeBuildTriggerRule01:
+    Type: AWS::Events::Rule
+    Properties: 
+      Description: Trigger Docker Image Build in CodeBuild
+      EventPattern: 
+        source: 
+        - aws.kinesis
+        detail-type:
+        - "AWS API Call via CloudTrail"
+        detail:
+          eventSource: 
+          - kinesis.amazonaws.com
+          eventName: 
+          - CreateStream
+      RoleArn: !GetAtt EventBridgeRole01.Arn
+      State: ENABLED
+      Targets: 
+        - Arn: !GetAtt CodeBuildProjectDockerImages01.Arn
+          Id: CodeBuildDockerImages
+          RoleArn: !GetAtt EventBridgeRole01.Arn
+        
+  CodeBuildRole01:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: 'sts:AssumeRole'
+
+  CodeBuildPolicy01:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      ManagedPolicyName: DataProcessor-ImageBuild-Policy
+      Roles: 
+      - !Ref CodeBuildRole01
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: Allow
+            Action:
+            - ecr:BatchCheckLayerAvailability
+            - ecr:CompleteLayerUpload
+            - ecr:InitiateLayerUpload
+            - ecr:PutImage
+            - ecr:UploadLayerPart
+            Resource: !Sub 'arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/kinesis-data-processor/*'
+          -
+            Effect: Allow
+            Action:
+              - ecr:GetAuthorizationToken
+            Resource: '*'
+          -
+            Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+            Resource: !Sub 'arn:aws:logs:us-east-1:299003995950:log-group:*'
+          - 
+            Effect: Allow
+            Action: 
+            - codebuild:CreateReportGroup
+            - codebuild:CreateReport
+            - codebuild:UpdateReport
+            - codebuild:BatchPutTestCases
+            Resource: !Sub 'arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/*'
+          -
+            Effect: Allow
+            Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*'
+
+
+  CodeBuildProjectDockerImages01:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: DataProcessor-ImageBuild-All
+      Description: Build Docker images for Producer, Consumer & Kinesis Autoscaling Application
+      ServiceRole: !Ref CodeBuildRole01
+      Artifacts:
+        Type: no_artifacts
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:3.0
+        PrivilegedMode: true
+        EnvironmentVariables:
+        - Name: AWS_ACCOUNT_ID
+          Value: !Ref 'AWS::AccountId'
+        - Name: IMAGE_REPO_NAME_PRODUCER
+          Value: kinesis-data-processor/producer
+        - Name: IMAGE_REPO_NAME_CONSUMER
+          Value: kinesis-data-processor/consumer
+        - Name: IMAGE_REPO_NAME_AUTOSCALER
+          Value: kinesis-data-processor/kinesisautoscaler
+        - Name: IMAGE_TAG
+          Value: latest
+        - Name: AWS_DEFAULT_REGION
+          Value: !Ref 'AWS::Region'
+        - Name: SOURCE_REPO
+          Value: https://github.com/aws-samples/amazon-kinesis-data-processor-aws-fargate
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: '{"version":0.2,"env":{"git-credential-helper":"yes"},"phases":{"pre_build":{"commands":["echo Fetching repo...","git clone --single-branch --branch master $SOURCE_REPO .","echo Logging in to Amazon ECR...","$(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)"]},"build":{"commands":["echo Build started on `date`","echo Building the Docker image...","docker build -t $IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG ./producer","docker tag $IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG","docker build -t $IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG --build-arg AWS_REGION=$AWS_DEFAULT_REGION ./consumer ","docker tag $IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG","docker build -t $IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG ./kinesisautoscaler","docker tag $IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG"]},"post_build":{"commands":["echo Build completed on `date`","echo Pushing the Docker image...","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_PRODUCER:$IMAGE_TAG","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_CONSUMER:$IMAGE_TAG","docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME_AUTOSCALER:$IMAGE_TAG"]}}}'
+      TimeoutInMinutes: 10
+  
+Outputs:
+  Endpoint:
+    Description: HTTP Endpoint for the Application Load Balancer
+    Value: !Sub 'http://${ElasticLoadBalancer01.DNSName}'
+  Dashboard:
+    Description: Link to CloudWatch Dashboard
+    Value: !Sub 'https://console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=Kinesis-Data-Processor-Dashboard;accountId=${AWS::AccountId}'
+  SecurityGroup:
+    Description: Modify this SG to grant/restrict access to your application
+    Value: !Sub 'https://${AWS::Region}.console.aws.amazon.com/ec2/v2/home?region=${AWS::Region}#SecurityGroup:groupId=${ALBSecurityGroup01.GroupId}'
