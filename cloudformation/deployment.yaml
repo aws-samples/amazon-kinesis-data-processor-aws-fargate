@@ -1,6 +1,7 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Sample deployment for the AWS blog post "Building a scalable streaming data processor with Amazon Kinesis on AWS Fargate"
 
+
 Parameters:
   
   InboundCIDRRange:
