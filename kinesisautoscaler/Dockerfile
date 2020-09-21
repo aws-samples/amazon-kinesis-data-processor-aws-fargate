@@ -10,6 +10,7 @@ RUN git clone --branch V.9.6.0 https://github.com/awslabs/amazon-kinesis-scaling
 RUN mvn dependency:go-offline
 RUN mvn clean package assembly:assembly
 
+
 #
 # Package stage
 #
