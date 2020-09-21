@@ -1,6 +1,7 @@
 # Building a scalable streaming data processor with Amazon Kinesis on AWS Fargate
 *Florian Mair, Solutions Architect*
 
+
 Data is ubiquitous in businesses today, and the volume and speed of
 incoming data are constantly increasing. To derive insights from data it
 is essential to deliver it to a data lake or a data store and analyze
