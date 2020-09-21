@@ -74,6 +74,7 @@ Kinesis auto scaler application.
 
 ### Data Ingestion
 
+
 For ingesting data into the KDS, you will utilize the Kinesis Producer
 Library (KPL) which aggregates, compresses, and batches data records to
 make the ingestion more efficient. In this architecture, the KPL
