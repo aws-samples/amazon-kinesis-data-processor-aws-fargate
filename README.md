@@ -138,7 +138,7 @@ before or after another.
 
 ### Stream processing: KCL application on AWS Fargate
 
-This post shows you how to use custom consumers---specifically,
+This post shows you how to use custom consumers - specifically,
 [enhanced fan-out
 consumers](https://docs.aws.amazon.com/streams/latest/dev/enhanced-consumers.html)---using
 the KCL. Enhanced fan-out consumers have a dedicated throughput of 2
