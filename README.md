@@ -50,8 +50,8 @@ financial trading.
 
 A data streaming application consists of two layers: the storage layer
 and the processing layer. As stream storage, AWS offers the managed
-services Kinesis Data Streams and [Amazon Managed Streaming for Apache]
-(https://aws.amazon.com/msk/)Kafka (Amazon MSK), but you can also run 
+services Kinesis Data Streams and [Amazon Managed Streaming for Apache
+Kafka (Amazon MSK)](https://aws.amazon.com/msk/), but you can also run 
 stream storageslike [Apache Kafka](https://kafka.apache.org/) or [Apache
 Flume](https://flume.apache.org/) on [Amazon Elastic Compute
 Cloud](http://aws.amazon.com/ec2) (Amazon EC2) or [Amazon
