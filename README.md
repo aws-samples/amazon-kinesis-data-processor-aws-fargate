@@ -50,17 +50,19 @@ financial trading.
 
 A data streaming application consists of two layers: the storage layer
 and the processing layer. As stream storage, AWS offers the managed
-service Kinesis Data Streams, but you can also run other stream storages
-like [Apache Kafka](https://kafka.apache.org/) or [Apache
+services Kinesis Data Streams and [Amazon Managed Streaming for Apache]
+(https://aws.amazon.com/msk/)Kafka (Amazon MSK), but you can also run 
+stream storageslike [Apache Kafka](https://kafka.apache.org/) or [Apache
 Flume](https://flume.apache.org/) on [Amazon Elastic Compute
 Cloud](http://aws.amazon.com/ec2) (Amazon EC2) or [Amazon
-EMR](http://aws.amazon.com/emr). The processing layer consumes the
-data from the storage layer and runs computations on that data. This
-could be your own application that can consume data from the stream, or
-you use a stream processing framework like Apache Flink, Apache Spark
-Streaming, or Apache Storm. For this post, we use Kinesis Data Streams
-as the storage layer and the containerized KCL application on AWS
-Fargate as the processing layer.
+EMR](http://aws.amazon.com/emr). The processing layer consumes the data
+from the storage layer and runs computations on that data. This could be
+an Apache Flink application running fully managed on [Amazon Kinesis 
+Analytics for Apache Flink](https://docs.aws.amazon.com/kinesisanalytics/latest/java/what-is.html),
+an application running stream processing frameworks like Apache Spark
+Streaming and Apache Storm or a custom application using the Kinesis API
+or KCL. For this post, we use Kinesis Data Streams as the storage layer 
+and the containerized KCL applicationon AWS Fargate as the processing layer.
 
 ## Streaming data processing architecture
 
@@ -116,7 +118,7 @@ utilization of 65%.
 As mentioned earlier, you can run a variety of streaming platforms on
 AWS. However, for the data processor in this post, you use Kinesis Data
 Streams. Kinesis Data Streams is a data store where the data is held for
-24 hours and configurable up to 168 hours. Kinesis Data Streams is
+24 hours and configurable up to 1 year. Kinesis Data Streams is
 designed to be highly available and redundant by storing data across
 three [Availability
 Zones](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-availability-zones)
@@ -125,7 +127,9 @@ in the specified Region.
 The stream consists of one or more *shards*, which are uniquely
 identified sequences of data records in a stream. One shard has a
 maximum of 2 MB/s in reads (up to five transactions) and 1 MB/s writes
-per second (up to 1,000 records per second).
+per second (up to 1,000 records per second). Consumers with [Dedicated 
+Throughput (Enhanced Fan-Out)](https://docs.aws.amazon.com/streams/latest/dev/enhanced-consumers.html) 
+support up to 2 MB/s data egress per consumer and shard.
 
 Each record written to Kinesis Data Streams has a *partition key,* which
 is used to group data by shard. In this example, the data stream starts
