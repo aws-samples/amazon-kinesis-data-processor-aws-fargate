@@ -6,11 +6,11 @@
 
 import os
 
-with open('app/record_processor.properties', 'r') as file :
+with open('/usr/bin/record_processor.properties', 'r') as file :
     filedata = file.read()
     filedata = filedata.replace('AWS_REGION', os.environ['REGION'])
     filedata = filedata.replace('STREAM_NAME', os.environ['STREAM_NAME'])
     filedata = filedata.replace('APPLICATION_NAME', os.environ['APPLICATION_NAME'])
 
-with open('app/record_processor.properties', 'w') as file:
+with open('/usr/bin/record_processor.properties', 'w') as file:
     file.write(filedata)
