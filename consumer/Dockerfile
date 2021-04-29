@@ -15,7 +15,7 @@ RUN git clone --depth 1 --branch v2.0.1 https://github.com/awslabs/amazon-kinesi
 COPY record_processor.properties record_processor.py setup.py logback.xml run.sh  set_properties.py /app/
 
 RUN python3.8 app/setup.py install &&\
-    chmod 755 /app/run.sh
+    chmod 777 /app
 
 
 ENTRYPOINT ["sh", "./app/run.sh"]
