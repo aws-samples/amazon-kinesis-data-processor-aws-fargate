@@ -2,7 +2,7 @@
 # Build stage
 #
 
-FROM maven:3.6.0-jdk-11-slim AS build
+FROM public.ecr.aws/hotmart/pipeline-maven:3-jdk-11-slim AS build
 WORKDIR /usr/local/kinesis_scaling
 RUN apt-get update        
 RUN apt-get install -y git
@@ -13,6 +13,6 @@ RUN mvn clean package assembly:assembly
 #
 # Package stage
 #
-FROM openjdk:11-jre-slim
+FROM public.ecr.aws/rogii/openjdk:11-corretto
 COPY --from=build /usr/local/kinesis_scaling/target/KinesisScalingUtils-.9.6.0-complete.jar /usr/local/lib/KinesisScalingUtils-.9.6.0-complete.jar
 ENTRYPOINT java -Dconfig-file-url=${CONFIG_FILE} -cp /usr/local/lib/KinesisScalingUtils-.9.6.0-complete.jar com.amazonaws.services.kinesis.scaling.auto.AutoscalingController
