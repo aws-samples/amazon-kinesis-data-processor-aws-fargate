@@ -1,4 +1,4 @@
-FROM amazonlinux:2
+FROM public.ecr.aws/amazonlinux/amazonlinux:2
 
 RUN yum install -y java-1.8.0-openjdk.x86_64 &&\
     yum install -y python3.x86_64 &&\
