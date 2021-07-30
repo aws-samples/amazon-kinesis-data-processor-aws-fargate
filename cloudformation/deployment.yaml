@@ -742,7 +742,7 @@ Resources:
             Effect: Allow
             Action:
               - logs:CreateLogGroup
-            Resource: !Sub 'arn:aws:logs:us-east-1:299003995950:log-group:*'
+            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*'
           - 
             Effect: Allow
             Action: 
