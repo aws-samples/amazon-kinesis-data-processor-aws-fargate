@@ -20,7 +20,7 @@ formatter = logging.Formatter(
         '%(asctime)s.%(msecs)03d [%(module)s] %(levelname)s  %(funcName)s - %(message)s',
         '%H:%M:%S'
 )
-handler = handlers.RotatingFileHandler('/app/logs/record_processor.log', maxBytes=1000, backupCount=5)
+handler = handlers.RotatingFileHandler('/app/logs/record_processor.log', maxBytes=10**6, backupCount=5)
 handler.setLevel(logging.INFO)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
