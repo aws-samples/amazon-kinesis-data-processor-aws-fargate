@@ -1,20 +1,13 @@
 FROM public.ecr.aws/amazonlinux/amazonlinux:2
-
-RUN yum install -y java-1.8.0-openjdk.x86_64 &&\
-    yum install -y python3.x86_64 &&\
-    yum install -y git &&\
-    python3 -m pip install amazon_kclpy
-
-RUN git clone --depth 1 --branch v2.0.1 https://github.com/awslabs/amazon-kinesis-client-python /kclpy &&\
-    mv /kclpy/amazon_kclpy / &&\
-    mkdir -p app/logs &&\
-    mv /kclpy/samples/amazon_kclpy_helper.py /usr/bin &&\
-    rm -rf /kclpy
-
-COPY record_processor.properties record_processor.py setup.py logback.xml run.sh  set_properties.py /usr/bin/
-
-RUN python3 /usr/bin/setup.py install &&\
+RUN yum install python3 git java-11-amazon-corretto-headless -y
+RUN git clone --depth 1 --branch v2.1.1 https://github.com/awslabs/amazon-kinesis-client-python
+RUN cd amazon-kinesis-client-python &&\
+    python3 setup.py download_jars &&\
+    python3 setup.py install &&\
     chmod 777 /usr/bin
 
-
+COPY record_processor.py logback.xml run.sh  set_properties.py sample.properties /usr/bin/
+RUN python3 /usr/bin/set_properties.py
 ENTRYPOINT ["sh", "/usr/bin/run.sh"]
+
+
