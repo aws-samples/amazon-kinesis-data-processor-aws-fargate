@@ -7,7 +7,6 @@ RUN cd amazon-kinesis-client-python &&\
     chmod 777 /usr/bin
 
 COPY record_processor.py logback.xml run.sh  set_properties.py sample.properties /usr/bin/
-RUN python3 /usr/bin/set_properties.py
 ENTRYPOINT ["sh", "/usr/bin/run.sh"]
 
 
