@@ -10,11 +10,169 @@ Parameters:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(3[0-2]|[1-2][0-9]|[0-9]))$
 
 Resources:
+  VPC01:
+      Type: AWS::EC2::VPC
+      Properties: 
+        CidrBlock: 10.0.0.0/16
+      DependsOn: KinesisDataStream01
 
+  PublicSubnet01:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AvailabilityZone: !Select 
+      - 0
+      - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: 10.0.0.0/24
+      MapPublicIpOnLaunch: true
+      VpcId:
+        Ref: VPC01
 
+  PublicSubnet02:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AvailabilityZone: !Select 
+      - 1
+      - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      VpcId:
+        Ref: VPC01
 
+  PrivateSubnet01:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC01
+      AvailabilityZone: !Select 
+      - 0
+      - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: 10.0.10.0/24
+      MapPublicIpOnLaunch: false
 
+  PrivateSubnet02:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC01
+      AvailabilityZone: !Select 
+      - 1
+      - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: 10.0.11.0/24
+      MapPublicIpOnLaunch: false
 
+  InternetGateway01:
+    Type: AWS::EC2::InternetGateway
+
+  InternetGatewayAttachment01:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway01
+      VpcId: !Ref VPC01
+
+  NatGateway01EIP:
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGatewayAttachment01
+    Properties:
+      Domain: vpc
+
+  NatGateway02EIP:
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGatewayAttachment01
+    Properties:
+      Domain: vpc
+
+  NatGateway01:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGateway01EIP.AllocationId
+      SubnetId: !Ref PublicSubnet01
+
+  NatGateway02:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGateway02EIP.AllocationId
+      SubnetId: !Ref PublicSubnet02
+
+  PublicRouteTable01:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC01
+
+  DefaultPublicRoute01:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment01
+    Properties:
+      RouteTableId: !Ref PublicRouteTable01
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway01
+
+  PublicSubnet01RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable01
+      SubnetId: !Ref PublicSubnet01
+
+  PublicSubnet02RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable01
+      SubnetId: !Ref PublicSubnet02
+
+  PrivateRouteTable01:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC01
+
+  DefaultPrivateRoute01:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable01
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway01
+
+  PrivateSubnet01RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable01
+      SubnetId: !Ref PrivateSubnet01
+
+  PrivateRouteTable02:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC01
+
+  DefaultPrivateRoute02:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable02
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway02
+
+  PrivateSubnet02RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable02
+      SubnetId: !Ref PrivateSubnet02
+
+  KinesisDataStream01:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      Name: data-processing-stream
+      ShardCount: 1
+    DependsOn: CodeBuildTriggerRule01
+
+  ECSCluster01:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: dataprocessor-cluster
+
+  ProducerRepository01:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: kinesis-data-processor/producer
+
+  KinesisAutoscalerRepository01:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: kinesis-data-processor/kinesisautoscaler
 
 
   ECSTaskExecutionRole01:
@@ -46,7 +204,130 @@ Resources:
         SourceSecurityGroupId: !Ref ALBSecurityGroup01
     DependsOn: ALBSecurityGroup01
 
+  ECSTaskProducerDefinition01:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: Producer
+      NetworkMode: awsvpc
+      Cpu: 2048
+      Memory: 4096
+      ContainerDefinitions:
+        - Cpu: 2048
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/kinesis-data-processor/producer'
+          Memory: 4096
+          Name: Producer
+          PortMappings:
+            - ContainerPort: 8080
+          LogConfiguration: 
+            LogDriver: awslogs
+            Options:
+              awslogs-group: ecs/kinesis-data-processor-producer
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: producer
+          Environment:
+            - Name: REGION 
+              Value: !Ref 'AWS::Region'
+            - Name: STREAM_NAME
+              Value: data-processing-stream
+      ExecutionRoleArn: !Ref ECSTaskExecutionRole01
+      TaskRoleArn: !Ref ECSTaskProducerRole01
+      RequiresCompatibilities: 
+        - FARGATE
+    DependsOn: ECSTaskLogGroup01
 
+  ECSTaskProducerRole01:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+
+  ECSServiceProducer01:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !GetAtt ECSCluster01.Arn
+      DesiredCount: 1
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: Producer
+          ContainerPort: 8080
+          TargetGroupArn: !Ref ALBTargetGroup01
+      ServiceName: dataProcessor-producerservice
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - !Ref ECSProducerServiceSecurityGroup01
+          Subnets:
+            - !Ref PrivateSubnet01
+            - !Ref PrivateSubnet02
+      SchedulingStrategy: REPLICA
+      TaskDefinition: !Ref ECSTaskProducerDefinition01
+    DependsOn: ALBListener01
+
+  ECSServiceRoleProducer01:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2008-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: ecs.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole'
+
+  KPLPolicy01:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      ManagedPolicyName: KinesisProducerLibraryPolicy
+      Roles: 
+      - !Ref ECSTaskProducerRole01
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Action:
+              - kinesis:ListStreams
+              - kinesis:ListShards
+              - kinesis:PutRecords
+              - kinesis:PutRecord
+            Resource: !GetAtt KinesisDataStream01.Arn
+          - 
+            Effect: "Allow"
+            Action:
+              - cloudwatch:PutMetricData
+            Resource: "*"   
+    DependsOn: ECSTaskProducerRole01
+
+  ECSAutoScalingTargetProducer01:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MinCapacity: 1
+      MaxCapacity: 15
+      ResourceId: !Join ['/', [service, !Ref ECSCluster01, !GetAtt ECSServiceProducer01.Name]] 
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+      RoleARN: !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService'
+
+  ECSAutoScalingProducerPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyType: TargetTrackingScaling
+      PolicyName: KinesisProducerScalingPolicy
+      ScalingTargetId: !Ref ECSAutoScalingTargetProducer01
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ECSServiceAverageCPUUtilization
+        ScaleInCooldown: 60
+        ScaleOutCooldown: 60
+        TargetValue: 65
 
 
   ECSTaskLogGroup03:
