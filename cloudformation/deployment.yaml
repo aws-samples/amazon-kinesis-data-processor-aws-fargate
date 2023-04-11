@@ -157,6 +157,9 @@ Resources:
     Properties:
       Name: data-processing-stream
       ShardCount: 1
+      StreamEncryption: 
+        EncryptionType: KMS
+        KeyId: alias/aws/kinesis
     DependsOn: CodeBuildTriggerRule01
 
   ECSCluster01:
