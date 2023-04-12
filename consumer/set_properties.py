@@ -8,10 +8,9 @@ import os
 
 with open('/usr/bin/sample.properties', 'r') as file :
     filedata = file.read()
-    filedata = filedata.replace('sample_kclpy_app.py', 'record_processor.py')
-    filedata = filedata.replace('us-east-1', os.environ['REGION'])
-    filedata = filedata.replace('kclpysample', os.environ['STREAM_NAME'])
-    filedata = filedata.replace('PythonKCLSample', os.environ['APPLICATION_NAME'])
+    filedata = filedata.replace('AWS_REGION', os.environ['REGION'])
+    filedata = filedata.replace('STREAM_NAME', os.environ['STREAM_NAME'])
+    filedata = filedata.replace('APPLICATION_NAME', os.environ['APPLICATION_NAME'])
 
 with open('/usr/bin/record_processor.properties', 'w') as file:
     file.write(filedata)
