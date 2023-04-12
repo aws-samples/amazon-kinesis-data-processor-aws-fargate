@@ -221,46 +221,6 @@ Streams and write to DynamoDB) by assuming the role
 ECSTaskConsumerRole01. This sample deployment uses 2 vCPU and 4 GB
 memory to run the container.
 
-### Kinesis capacity management
-
-When changes in the rate of data flow occur, you may have to increase or
-decrease the capacity. With Kinesis Data Streams, you can have one or
-more *hot shards* as a result of unevenly distributed partition keys,
-very similar to a hot key in a database. This means that a certain shard
-receives more traffic than others, and if it's overloaded, it produces a
-ProvisionedThroughputExceededException (enable detailed monitoring to
-see that metric on shard level).
-
-You need to split these hot shards to increase throughput, and merge
-cold shards to increase efficiency. For this post, you use random
-partition keys (and therefore random shard assignment) for the records,
-so we don't dive deeper into splitting and merging specific shards.
-Instead, we show how to increase and decrease throughput capacity for
-the whole stream. For more information about scaling on a shard level,
-see [Strategies for
-Resharding](https://docs.aws.amazon.com/streams/latest/dev/kinesis-using-sdk-java-resharding-strategies.html).
-
-You can build your own scaling application utilizing the
-[UpdateShardCount](https://docs.aws.amazon.com/kinesis/latest/APIReference/API_UpdateShardCount.html),
-[SplitShard](https://docs.aws.amazon.com/kinesis/latest/APIReference/API_SplitShard.html),
-and
-[MergeShards](https://docs.aws.amazon.com/kinesis/latest/APIReference/API_MergeShards.html)
-APIs or use the custom resource scaling solution as described in [Scale
-Amazon Kinesis Data Streams with AWS Application Auto
-Scaling](https://aws.amazon.com/blogs/big-data/scaling-amazon-kinesis-data-streams-with-aws-application-auto-scaling/)
-or [Amazon Kineis Scaling
-Utils](https://github.com/awslabs/amazon-kinesis-scaling-utils).
-The Application Auto Scaling is an event-driven scaling architecture
-based on CloudWatch alarms, and the Scaling Utils is a Docker container
-that constantly monitors your data stream. The Application Auto Scaling
-manages the number of shards for scaling, whereas the Kinesis Scaling
-Utils additionally handles shard keyspace allocations, hot shard
-splitting, and cold shard merging. For this solution, you use the
-Kinesis Scaling Utils and deploy it on Amazon ECS. You can also deploy
-it on [AWS Elastic
-Beanstalk](https://aws.amazon.com/elasticbeanstalk) as a container
-or on an Apache Tomcat platform.
-
 ## Prerequisites
 
 For this walkthrough, you must have an [AWS
@@ -270,21 +230,20 @@ account](https://aws.amazon.com/premiumsupport/knowledge-center/create-and-activ
 
 In this post, we walk through the following steps:
 
-1.  Deploying the CloudFormation template.
+1.  Deploying the CDK Stack template.
 
 2.  Sending records to Kinesis Data Streams.
 
 3.  Monitoring your stream and applications.
 
-Deploying the CloudFormation template
+#### Deploying the CDK Stack
 
-Deploy the CloudFormation stack by choosing **Launch Stack**:
+1. Clone the repository
+2. `cd cdk`
+3. `npm install`
+4. `cdk deploy`
 
-[<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?&templateURL=https://flomair-dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
-
-The template launches in the US East (N. Virginia) Region by default. To
-launch it in a different Region, use the Region selector in the console
-navigation bar. The following Regions are supported:
+The following Regions are supported:
 
 -   US East (Ohio)
 
@@ -300,24 +259,12 @@ navigation bar. The following Regions are supported:
 
 -   Europe (Ireland)
 
-Alternatively, you can download the [CloudFormation
-template](https://flomair-dataprocessor-source.s3-us-west-2.amazonaws.com/deployment.yaml)
-and deploy it manually. When asked to provide an IPv4 CIDR range, enter
-the CIDR range that can send records to your application. You can change
-it later on by adapting the [security groups inbound
-rule](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html#AddRemoveRules)
-for the Application Load Balancer.
 
 ### Sending records to Kinesis Data Streams
 
 You have several options to send records to Kinesis Data Streams. You
-can do it from the CLI or any API client that can send REST requests, or
-use a load testing solution like [Distributed Load Testing on
-AWS](https://aws.amazon.com/solutions/distributed-load-testing-on-aws/)
-or [Artillery](https://artillery.io/). With load testing,
-additional charges for requests occur; as a guideline, 10,000 requests
-per second for 10 minutes generate an AWS bill of less than \$5.00. To
-do a POST request via curl, run the following command and replace
+can do it from the CLI or any API client that can send REST requests.
+To do a POST request via curl, run the following command and replace
 *ALB_ENDPOINT* with the DNS record of your Application Load Balancer.
 You can find it on the CloudFormation stack's **Outputs** tab. Ensure
 you have a JSON element "data". Otherwise, the application can't process
@@ -364,20 +311,14 @@ For example, if you increase the value of RecordMaxBufferedTime, data
 records are buffered longer at the producer, more records can be
 aggregated, but the latency for ingestion is increased.
 
-All three applications (including the Kinesis Data Streams scaler)
-publish logs to their respective log group (for example,
-ecs/kinesis-data-processor-producer) in CloudWatch. You can either check
+All applications
+publish logs to their respective log group  in CloudWatch. You can either check
 the CloudWatch logs of the Auto Scaling Application or the data stream
 metrics to see the scaling behavior of Kinesis Data Streams.
 
 ### Cleaning up
 
-To avoid additional cost, ensure that the provisioned resources are
-decommissioned. To do that, delete the images in the [Amazon Elastic
-Container Registry](http://aws.amazon.com/ecr/) (Amazon ECR)
-repository, the CloudFormation stack, and any remaining resources that
-the CloudFormation stack didn't automatically delete. Additionally,
-delete the DynamoDB table DataProcessorConsumer, which the KCL created.
+Run the command `cdk destroy` from the cdk directory.
 
 ## Conclusion
 
